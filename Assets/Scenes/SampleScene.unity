@@ -236,11 +236,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   tileSize: 0.2
-  boardWidth: 10
-  boardHeight: 20
+  boardCols: 10
+  boardRows: 20
   tickSpeed: 1
+  repeatPercentage: 0.1
   tilePrefab: {fileID: 4369609173859262217, guid: 25d9203f00ba740fbbe763c98928dfff, type: 3}
-  boardPosition: {x: 0, y: 0}
   shapeSpawner: {fileID: 1788318225}
 --- !u!4 &696675377
 Transform:
