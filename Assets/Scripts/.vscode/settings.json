@@ -1,0 +1,6 @@
+{
+    "csharp.referencesCodeLens.enabled": false,
+    "csharp.testsCodeLens.enabled": false,
+    "editor.formatOnSave": true,
+    "editor.formatOnPaste": true
+}
