@@ -13,9 +13,9 @@ public class ShapeSpawner : MonoBehaviour
     public void Awake()
     {
         shapeVectors = new Vector2Int[][] {
-            new Vector2Int[] {new Vector2Int(0,0), new Vector2Int(1,0), new Vector2Int(1,1), new Vector2Int(2,1)},
+            new Vector2Int[] {new Vector2Int(-1,0), new Vector2Int(0,0), new Vector2Int(0,1), new Vector2Int(1,1)},
             new Vector2Int[] {new Vector2Int(0,0), new Vector2Int(1,0), new Vector2Int(1,1), new Vector2Int(0,1)},
-            new Vector2Int[] {new Vector2Int(0,0), new Vector2Int(0,1), new Vector2Int(1,1), new Vector2Int(2,1)},
+            new Vector2Int[] {new Vector2Int(-1,-1), new Vector2Int(-1,0), new Vector2Int(0,0), new Vector2Int(1,0)},
         };
 
         shapeManifest = new Shape[shapeVectors.Length];
@@ -36,7 +36,9 @@ public class ShapeSpawner : MonoBehaviour
 
     private Shape GetRandomShape()
     {
-        return shapeManifest[Random.Range(0, shapeManifest.Length)];
+        Shape shape = shapeManifest[Random.Range(0, shapeManifest.Length)];
+        shape.Reset();
+        return shape;
     }
 
 }

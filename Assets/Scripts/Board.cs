@@ -13,7 +13,7 @@ public class Board : MonoBehaviour
     private Tile[,] board;
 
     private Shape currentShape;
-    public Vector2Int[] boardPosition;
+    public Vector2Int boardPosition;
 
     public ShapeSpawner shapeSpawner;
     bool isSet = false;
@@ -35,13 +35,12 @@ public class Board : MonoBehaviour
         if (timeUntilTick <= 0)
         {
             //This is a tick
-            Vector2Int[] oldPosition = boardPosition;
+            Vector2Int oldPosition = boardPosition;
             HandleGravity();
             if (oldPosition == boardPosition)
             {
                 _DebugPositions("boardPositions: ");
                 isSet = true;
-                oldPosition = null;
                 Debug.Log("placing new shape");
                 PlaceShape(shapeSpawner.GetNextShape());
             }
@@ -59,6 +58,10 @@ public class Board : MonoBehaviour
         {
             HandleGravity();
         }
+        if (Input.GetKeyDown(KeyCode.E))
+        {
+            RotateRight();
+        }
 
 
     }
@@ -66,17 +69,9 @@ public class Board : MonoBehaviour
     public void PlaceShape(Shape shape)
     {
         Vector2Int maxDimensions = shape.GetMaxDimensions();
-        boardPosition = new Vector2Int[shape.blocks.Length];
         if (maxDimensions.x >= 0 && maxDimensions.x < boardWidth && maxDimensions.y >= 0 && maxDimensions.y < boardHeight)
         {
-            Vector2Int initialShapePosition = new Vector2Int(maxDimensions.x, boardHeight - maxDimensions.y - 1);
-            for (int i = 0; i < shape.blocks.Length; i++)
-            {
-                Vector2Int block = shape.blocks[i];
-                int posX = initialShapePosition.x + block.x;
-                int posY = initialShapePosition.y + block.y;
-                boardPosition[i] = new Vector2Int(posX, posY);
-            }
+            boardPosition = new Vector2Int(maxDimensions.x, boardHeight - maxDimensions.y - 1);
         }
         currentShape = shape;
         isSet = false;
@@ -125,18 +120,17 @@ public class Board : MonoBehaviour
             Debug.Log("curent shape is set.  Ignoring movement");
             return; //Do nothing if the current shape is already set
         }
-        Vector2Int[] newBoardPosition = new Vector2Int[boardPosition.Length];
-        for (int i = 0; i < boardPosition.Length; i++)
+        Vector2Int newBoardPosition = boardPosition + directionVector;
+        for (int i = 0; i < currentShape.blocks.Length; i++)
         {
-            ClearTile(boardPosition[i]);
-            newBoardPosition[i] = boardPosition[i] + directionVector;
+            ClearTile(boardPosition + currentShape.blocks[i]);
         }
 
         // _DebugPositions("old positions: ");
         bool collisions = false;
-        for (int i = 0; i < newBoardPosition.Length; i++)
+        for (int i = 0; i < currentShape.blocks.Length; i++)
         {
-            if (TileFilled(newBoardPosition[i]))
+            if (TileFilled(newBoardPosition + currentShape.blocks[i]))
             {
                 collisions = true;
                 break;
@@ -146,21 +140,56 @@ public class Board : MonoBehaviour
         {
             boardPosition = newBoardPosition;
         }
-        for (int i = 0; i < boardPosition.Length; i++)
+        for (int i = 0; i < currentShape.blocks.Length; i++)
         {
-            FillTile(boardPosition[i]);
+            FillTile(boardPosition + currentShape.blocks[i]);
+        }
+        // _DebugPositions("new positions: ");
+    }
+
+    void RotateRight()
+    {
+        if (isSet)
+        {
+            Debug.Log("curent shape is set.  Ignoring movement");
+            return; //Do nothing if the current shape is already set
+        }
+        for (int i = 0; i < currentShape.blocks.Length; i++)
+        {
+            ClearTile(boardPosition + currentShape.blocks[i]);
+        }
+
+        // _DebugPositions("old positions: ");
+        bool collisions = false;
+        Vector2Int[] rotated_blocks = currentShape.RotateRight();
+        for (int i = 0; i < rotated_blocks.Length; i++)
+        {
+            if (TileFilled(boardPosition + rotated_blocks[i]))
+            {
+                collisions = true;
+                break;
+            }
+        }
+        if (!collisions)
+        {
+            currentShape.blocks = rotated_blocks;
+        }
+        for (int i = 0; i < currentShape.blocks.Length; i++)
+        {
+            FillTile(boardPosition + currentShape.blocks[i]);
         }
         // _DebugPositions("new positions: ");
     }
 
     void _DebugPositions(string header)
     {
-        string s = "";
-        foreach (Vector2Int v in boardPosition)
-        {
-            s += v + ", ";
-        }
-        Debug.Log(header + s);
+        Debug.Log(header + boardPosition);
+        // string s = "";
+        // foreach (Vector2Int v in boardPosition)
+        // {
+        //     s += v + ", ";
+        // }
+        // Debug.Log(header + s);
     }
 
     //Tile Filling/Clearing Methods
