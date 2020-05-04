@@ -7,13 +7,15 @@ public class Tile
     private Vector2 position;
     private float size;
     private bool filled = false;
-    public Color color = Color.white;
+    public Color defaultColor = Color.white;
+    public Color color;
     private Vector2Int boardIndex;
 
     public Tile(Vector2 position, float size, int i, int j)
     {
         this.position = position;
         this.size = size;
+        color = defaultColor;
         boardIndex = new Vector2Int(i, j);
     }
 
@@ -32,9 +34,15 @@ public class Tile
         return filled;
     }
 
-    public void Fill(Color color)
+    public void Fill(Color newColor)
     {
-        this.color = color;
+        color = newColor;
         filled = true;
+    }
+
+    public void Clear()
+    {
+        color = defaultColor;
+        filled = false;
     }
 }
