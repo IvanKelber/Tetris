@@ -64,6 +64,14 @@ public class Board : MonoBehaviour
         {
             RotateRight();
         }
+        // if (Input.GetKeyDown(KeyCode.Space))
+        // {
+        //     while (!isSet)
+        //     { //currently CRASHES BECAUSE OF INFINITE LOOP.  BEWARE
+        //         HandleGravity();
+        //         timeUntilTick = 0; //force tick
+        //     }
+        // }
 
 
     }
@@ -119,7 +127,7 @@ public class Board : MonoBehaviour
         HandleCollision(new Vector2Int(0, -1));
     }
 
-    public void HandleCollision(Vector2Int directionVector)
+    public HandleCollision(Vector2Int directionVector)
     {
         if (isSet)
         {

@@ -9,7 +9,7 @@ public class Tile : MonoBehaviour
     public Color defaultColor = Color.red;
     private Color color;
     private Vector2Int boardIndex;
-    const float edgeWidth = .005f;
+    const float edgeWidth = .01f;
     private void Awake()
     {
         color = defaultColor;
@@ -78,7 +78,7 @@ public class Tile : MonoBehaviour
 
     public void SetSize(float tileSize)
     {
-        size = tileSize - edgeWidth;
+        size = tileSize;
     }
 
     public void SetBoardIndex(int x, int y)
@@ -100,6 +100,17 @@ public class Tile : MonoBehaviour
     {
         color = newColor;
         filled = true;
+        Mesh mesh = GetComponent<MeshFilter>().mesh;
+
+        Vector3[] vertices = new Vector3[4]
+        {
+            new Vector3(0, 0, 0),
+            new Vector3(size-edgeWidth, 0, 0),
+            new Vector3(0, size-edgeWidth, 0),
+            new Vector3(size-edgeWidth, size-edgeWidth, 0)
+        };
+
+        mesh.vertices = vertices;
     }
 
     public void Clear()

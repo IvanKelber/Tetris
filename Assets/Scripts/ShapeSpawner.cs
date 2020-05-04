@@ -6,20 +6,20 @@ public class ShapeSpawner : MonoBehaviour
 {
 
     public Vector2Int[][] shapeVectors;
-
+    public Color[] colorOptions;
     Shape[] shapeManifest;
     Shape loadedShape;
 
     public void Awake()
     {
         shapeVectors = new Vector2Int[][] {
-            new Vector2Int[] {new Vector2Int(-1,0), new Vector2Int(0,0), new Vector2Int(0,1), new Vector2Int(1,1)},
-            new Vector2Int[] {new Vector2Int(0,0), new Vector2Int(1,0), new Vector2Int(1,1), new Vector2Int(0,1)},
-            new Vector2Int[] {new Vector2Int(-1,-1), new Vector2Int(-1,0), new Vector2Int(0,0), new Vector2Int(1,0)},
-            new Vector2Int[] {new Vector2Int(-2,0), new Vector2Int(-1,0), new Vector2Int(0,0), new Vector2Int(1,0)},
-            new Vector2Int[] {new Vector2Int(-1,0), new Vector2Int(0,0), new Vector2Int(1,0), new Vector2Int(1,1)},
-            new Vector2Int[] {new Vector2Int(-1,1), new Vector2Int(0,1), new Vector2Int(0,0), new Vector2Int(1,0)},
-            new Vector2Int[] {new Vector2Int(-1,0), new Vector2Int(0,0), new Vector2Int(0,-1), new Vector2Int(1,0)},
+            new Vector2Int[] {new Vector2Int(-1,0), new Vector2Int(0,0), new Vector2Int(0,1), new Vector2Int(1,1)}, // zig
+            new Vector2Int[] {new Vector2Int(0,0), new Vector2Int(1,0), new Vector2Int(1,1), new Vector2Int(0,1)}, // square
+            new Vector2Int[] {new Vector2Int(-1,-1), new Vector2Int(-1,0), new Vector2Int(0,0), new Vector2Int(1,0)}, // L
+            new Vector2Int[] {new Vector2Int(-2,0), new Vector2Int(-1,0), new Vector2Int(0,0), new Vector2Int(1,0)}, //line
+            new Vector2Int[] {new Vector2Int(-1,0), new Vector2Int(0,0), new Vector2Int(1,0), new Vector2Int(1,-1)}, // reverse L
+            new Vector2Int[] {new Vector2Int(-1,1), new Vector2Int(0,1), new Vector2Int(0,0), new Vector2Int(1,0)}, // zag
+            new Vector2Int[] {new Vector2Int(-1,0), new Vector2Int(0,0), new Vector2Int(0,-1), new Vector2Int(1,0)}, //steps
 
         };
 
@@ -27,7 +27,7 @@ public class ShapeSpawner : MonoBehaviour
 
         for (int i = 0; i < shapeVectors.Length; i++)
         {
-            shapeManifest[i] = new Shape(shapeVectors[i], new Color(Random.Range(0f, 1f), Random.Range(0f, 1f), Random.Range(0f, 1f), 1f));
+            shapeManifest[i] = new Shape(shapeVectors[i], colorOptions[i]);
         }
     }
 
@@ -45,5 +45,6 @@ public class ShapeSpawner : MonoBehaviour
         shape.Reset();
         return shape;
     }
+
 
 }
