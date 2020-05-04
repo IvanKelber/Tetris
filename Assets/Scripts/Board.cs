@@ -15,14 +15,17 @@ public class Board : MonoBehaviour
     private Shape currentShape;
     public Vector2Int[] boardPosition;
 
+    public ShapeSpawner shapeSpawner;
+    bool isSet = false;
     void Start()
     {
         InitializeBoard();
 
         //Test shape:
-        Vector2Int[] blocks = { new Vector2Int(0, 0), new Vector2Int(1, 0), new Vector2Int(1, 1), new Vector2Int(2, 1), new Vector2Int(2, 2) };
-        currentShape = new Shape(blocks, Color.red);
-        PlaceShape(currentShape);
+        // Vector2Int[] blocks = { new Vector2Int(0, 0), new Vector2Int(1, 0), new Vector2Int(1, 1), new Vector2Int(2, 1), new Vector2Int(2, 2) };
+        // currentShape = new Shape(blocks, Color.red);
+        // PlaceShape(currentShape);
+        PlaceShape(shapeSpawner.GetNextShape());
         timeUntilTick = tickSpeed;
     }
 
@@ -32,7 +35,16 @@ public class Board : MonoBehaviour
         if (timeUntilTick <= 0)
         {
             //This is a tick
+            Vector2Int[] oldPosition = boardPosition;
             HandleGravity();
+            if (oldPosition == boardPosition)
+            {
+                _DebugPositions("boardPositions: ");
+                isSet = true;
+                oldPosition = null;
+                Debug.Log("placing new shape");
+                PlaceShape(shapeSpawner.GetNextShape());
+            }
             timeUntilTick = tickSpeed;
         }
         if (Input.GetKeyDown(KeyCode.D))
@@ -42,6 +54,10 @@ public class Board : MonoBehaviour
         else if (Input.GetKeyDown(KeyCode.A))
         {
             HandleCollision(new Vector2Int(-1, 0));
+        }
+        if (Input.GetKeyDown(KeyCode.S))
+        {
+            HandleGravity();
         }
 
 
@@ -62,7 +78,8 @@ public class Board : MonoBehaviour
                 boardPosition[i] = new Vector2Int(posX, posY);
             }
         }
-        Debug.Log("INITIAL BOARD POSITION: " + boardPosition);
+        currentShape = shape;
+        isSet = false;
     }
 
     void InitializeBoard()
@@ -79,7 +96,6 @@ public class Board : MonoBehaviour
             }
         }
     }
-
 
     private void OnDrawGizmos()
     {
@@ -104,7 +120,11 @@ public class Board : MonoBehaviour
 
     public void HandleCollision(Vector2Int directionVector)
     {
-        // handles collisions in the direction of this vector
+        if (isSet)
+        {
+            Debug.Log("curent shape is set.  Ignoring movement");
+            return; //Do nothing if the current shape is already set
+        }
         Vector2Int[] newBoardPosition = new Vector2Int[boardPosition.Length];
         for (int i = 0; i < boardPosition.Length; i++)
         {
@@ -112,7 +132,7 @@ public class Board : MonoBehaviour
             newBoardPosition[i] = boardPosition[i] + directionVector;
         }
 
-        _DebugPositions("old positions: ");
+        // _DebugPositions("old positions: ");
         bool collisions = false;
         for (int i = 0; i < newBoardPosition.Length; i++)
         {
@@ -130,7 +150,7 @@ public class Board : MonoBehaviour
         {
             FillTile(boardPosition[i]);
         }
-        _DebugPositions("new positions: ");
+        // _DebugPositions("new positions: ");
     }
 
     void _DebugPositions(string header)
