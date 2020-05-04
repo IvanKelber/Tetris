@@ -35,6 +35,15 @@ public class Board : MonoBehaviour
             HandleGravity();
             timeUntilTick = tickSpeed;
         }
+        if (Input.GetKeyDown(KeyCode.D))
+        {
+            HandleCollision(new Vector2Int(1, 0));
+        }
+        else if (Input.GetKeyDown(KeyCode.A))
+        {
+            HandleCollision(new Vector2Int(-1, 0));
+        }
+
 
     }
 
