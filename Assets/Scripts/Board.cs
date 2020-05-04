@@ -9,6 +9,7 @@ public class Board : MonoBehaviour
     public int boardWidth = 10;
     public int boardHeight = 30;
     public float tickSpeed = 1; //Every one second our shape shapes to go down.
+    public GameObject tilePrefab;
     float timeUntilTick;
     private Tile[,] board;
 
@@ -16,6 +17,7 @@ public class Board : MonoBehaviour
     public Vector2Int boardPosition;
 
     public ShapeSpawner shapeSpawner;
+
     bool isSet = false;
     void Start()
     {
@@ -74,6 +76,7 @@ public class Board : MonoBehaviour
             boardPosition = new Vector2Int(maxDimensions.x, boardHeight - maxDimensions.y - 1);
         }
         currentShape = shape;
+
         isSet = false;
     }
 
@@ -87,7 +90,10 @@ public class Board : MonoBehaviour
             for (int j = 0; j < boardHeight; j++)
             {
                 Vector2 position = new Vector2(startingPosition.x + tileSize * i, startingPosition.y + tileSize * j);
-                board[i, j] = new Tile(position, tileSize, i, j);
+                board[i, j] = (Tile)Instantiate(tilePrefab, position, Quaternion.identity).GetComponent<Tile>();
+                board[i, j].SetSize(tileSize);
+                board[i, j].SetBoardIndex(i, j);
+                board[i, j].Render();
             }
         }
     }
@@ -98,7 +104,7 @@ public class Board : MonoBehaviour
         {
             foreach (Tile tile in board)
             {
-                Gizmos.color = tile.color;
+                Gizmos.color = tile.GetColor();
                 Gizmos.DrawCube(tile.GetCenter(), new Vector2(tileSize, tileSize));
                 Gizmos.color = Color.red;
                 Gizmos.DrawWireCube(tile.GetCenter(), new Vector2(tileSize, tileSize));
