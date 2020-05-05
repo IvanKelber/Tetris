@@ -48,13 +48,12 @@ public class Board : MonoBehaviour
     public void PlaceShape(Shape shape)
     {
         currentShape = shape;
-        currentShape.board = this;
+        currentShape.SetBoard(this);
         Vector2Int maxDimensions = currentShape.GetMaxDimensions();
         if (maxDimensions.x >= 0 && maxDimensions.x < boardCols && maxDimensions.y >= 0 && maxDimensions.y < boardRows)
         {
             currentShape.currentBoardIndex = new Vector2Int(maxDimensions.x, boardRows - maxDimensions.y);
         }
-
         currentShape.isSet = false;
     }
 

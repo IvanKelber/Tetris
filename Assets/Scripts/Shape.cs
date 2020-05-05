@@ -13,10 +13,11 @@ public class Shape : MonoBehaviour
     public bool isSet;
 
     public Vector2Int currentBoardIndex;
-    public float blockSize = 1;
+    float blockSize;
     float timeUntilTick;
     float timeUntilDown;
     float downDelay;
+    const float edgeWidth = .005f;
     MeshRenderer meshRenderer;
     MeshFilter meshFilter;
     private void Start()
@@ -88,6 +89,12 @@ public class Shape : MonoBehaviour
         //     }
         //     PlaceShape(shapeSpawner.GetNextShape());
         // }
+    }
+
+    public void SetBoard(Board board)
+    {
+        this.board = board;
+        blockSize = board.tileSize;
     }
 
     public void HandleGravity()
@@ -164,16 +171,10 @@ public class Shape : MonoBehaviour
         Vector3[] vertices = new Vector3[4]
         {
                 new Vector3(block.x, block.y, -5),
-                new Vector3(block.x + blockSize, block.y, -5),
-                new Vector3(block.x, block.y + blockSize, -5),
-                new Vector3(block.x + blockSize, block.y + blockSize, -5)
+                new Vector3(block.x + blockSize-edgeWidth, block.y, -5),
+                new Vector3(block.x, block.y + blockSize-edgeWidth, -5),
+                new Vector3(block.x + blockSize-edgeWidth, block.y + blockSize-edgeWidth, -5)
         };
-        string s = "";
-        foreach (Vector3 v in vertices)
-        {
-            s += v;
-        }
-        Debug.Log(s);
         return vertices;
     }
 
@@ -188,51 +189,6 @@ public class Shape : MonoBehaviour
             start + 2, start + 3, start + 1
        };
         return tris;
-    }
-
-    public void RenderBlock(Vector2 position)
-    {
-
-
-        Mesh mesh = new Mesh();
-
-        Vector3[] vertices = new Vector3[4]
-        {
-            new Vector3(position.x, position.y, -10),
-            new Vector3(position.x + blockSize, position.y, -10),
-            new Vector3(position.x, position.y + blockSize, -10),
-            new Vector3(position.x + blockSize, position.y + blockSize, -10)
-        };
-        mesh.vertices = vertices;
-
-        int[] tris = new int[6]
-        {
-            // lower left triangle
-            0, 2, 1,
-            // upper right triangle
-            2, 3, 1
-        };
-        mesh.triangles = tris;
-
-        Vector3[] normals = new Vector3[4]
-        {
-            -Vector3.forward,
-            -Vector3.forward,
-            -Vector3.forward,
-            -Vector3.forward
-        };
-        mesh.normals = normals;
-
-        Vector2[] uv = new Vector2[4]
-        {
-            new Vector2(0, 0),
-            new Vector2(1, 0),
-            new Vector2(0, 1),
-            new Vector2(1, 1)
-        };
-        mesh.uv = uv;
-
-        meshFilter.mesh = mesh;
     }
 
     public Vector2Int GetMaxDimensions()
