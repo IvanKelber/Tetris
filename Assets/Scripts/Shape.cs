@@ -7,6 +7,7 @@ public class Shape : MonoBehaviour
 {
 
     public List<Vector2Int> blocks; //this is a list because the blocks can be removed by lines.
+    public List<Mesh> blockMeshes;
     public Color color;
     public Board board; // The board that the piece is on.
     public bool isSet;
@@ -16,14 +17,26 @@ public class Shape : MonoBehaviour
     float timeUntilTick;
     float timeUntilDown;
     float downDelay;
-
+    MeshRenderer meshRenderer;
+    MeshFilter meshFilter;
     private void Start()
     {
+        meshRenderer = gameObject.AddComponent<MeshRenderer>();
+        meshFilter = gameObject.AddComponent<MeshFilter>();
+
+        meshRenderer.sharedMaterial = new Material(Shader.Find("Standard"));
+        meshRenderer.material.SetColor("_Color", color);
+
+        meshFilter.mesh = new Mesh();
+
+
         downDelay = board.tickSpeed * board.repeatPercentage;
     }
 
     private void Update()
     {
+        Render();
+
         timeUntilTick -= Time.deltaTime;
         if (timeUntilTick <= 0)
         {
@@ -129,20 +142,65 @@ public class Shape : MonoBehaviour
 
     public void Render()
     {
-        //render based on size
-        MeshRenderer meshRenderer = gameObject.AddComponent<MeshRenderer>();
-        MeshFilter meshFilter = gameObject.AddComponent<MeshFilter>();
+        Mesh mesh = GetComponent<MeshFilter>().mesh;
+        mesh.Clear();
+        List<Vector3> verticesList = new List<Vector3>();
+        List<int> triangles = new List<int>();
+        for (int i = 0; i < blocks.Count; i++)
+        {
+            verticesList.AddRange(GetVertices(blocks[i]));
+            triangles.AddRange(GetTriangles(i));
+        }
+        Vector3[] vertices = verticesList.ToArray();
+        mesh.vertices = vertices;
+        mesh.triangles = triangles.ToArray();
+        mesh.RecalculateNormals();
+    }
 
-        meshRenderer.sharedMaterial = new Material(Shader.Find("Standard"));
-        meshRenderer.material.SetColor("_Color", defaultColor);
+    public Vector3[] GetVertices(Vector2Int blockIndex)
+    {
+        Vector2 block = new Vector2(blockIndex.x * blockSize, blockIndex.y * blockSize);
+        Vector3[] vertices = new Vector3[4]
+        {
+                new Vector3(block.x, block.y, 10),
+                new Vector3(block.x + blockSize, block.y, 10),
+                new Vector3(block.x, block.y + blockSize, 10),
+                new Vector3(block.x + blockSize, block.y + blockSize, 10)
+        };
+        string s = "";
+        foreach (Vector3 v in vertices)
+        {
+            s += v;
+        }
+        Debug.Log(s);
+        return vertices;
+    }
+
+    public int[] GetTriangles(int block)
+    {
+        int start = 4 * block;
+        int[] tris = new int[6]
+       {
+            // lower left triangle
+            start, start + 2, start + 1,
+            // upper right triangle
+            start + 2, start + 3, start + 1
+       };
+        return tris;
+    }
+
+    public void RenderBlock(Vector2 position)
+    {
+
+
         Mesh mesh = new Mesh();
 
         Vector3[] vertices = new Vector3[4]
         {
-            new Vector3(0, 0, 0),
-            new Vector3(size, 0, 0),
-            new Vector3(0, size, 0),
-            new Vector3(size, size, 0)
+            new Vector3(position.x, position.y, -10),
+            new Vector3(position.x + blockSize, position.y, -10),
+            new Vector3(position.x, position.y + blockSize, -10),
+            new Vector3(position.x + blockSize, position.y + blockSize, -10)
         };
         mesh.vertices = vertices;
 
@@ -243,12 +301,12 @@ public class Shape : MonoBehaviour
         //         Gizmos.DrawCube(pos, new Vector3(blockSize, blockSize, -10));
         //     }
         // }
-        Gizmos.color = color;
-        for (int i = 0; i < blocks.Count; i++)
-        {
-            Gizmos.DrawCube(board.GetPositionFromIndex(currentBoardIndex.y + blocks[i].y, currentBoardIndex.x + blocks[i].x),
-                                                         new Vector3(blockSize, blockSize, 10));
-        }
+        // Gizmos.color = color;
+        // for (int i = 0; i < blocks.Count; i++)
+        // {
+        //     Vector2 position = board.GetPositionFromIndex(currentBoardIndex.y + blocks[i].y, currentBoardIndex.x + blocks[i].x);
+        //     Gizmos.DrawCube(new Vector3(position.x + blockSize / 2, position.y + blockSize / 2), new Vector3(blockSize, blockSize, 10));
+        // }
         // Handles.Label(transform.position, "HERE");
         // Gizmos.color = Color.red;
         // Gizmos.DrawWireCube(tile.GetCenter(), new Vector2(tileSize, tileSize));

@@ -86,12 +86,12 @@ public class Board : MonoBehaviour
             new Vector3(bottomLeft.x + boardCols * tileSize, bottomLeft.y + boardRows * tileSize, 0) //top right
         };
 
-        //Remove this adjustment when we are actually rendering with quads instead of gizmos
-        Vector3 adjustmentVector = new Vector3(-tileSize / 2, -tileSize / 2);
-        for (int i = 0; i < vertices.Length; i++)
-        {
-            vertices[i] += adjustmentVector;
-        }
+        // //Remove this adjustment when we are actually rendering with quads instead of gizmos
+        // Vector3 adjustmentVector = new Vector3(-tileSize / 2, -tileSize / 2);
+        // for (int i = 0; i < vertices.Length; i++)
+        // {
+        //     vertices[i] += adjustmentVector;
+        // }
 
         mesh.vertices = vertices;
 
@@ -158,6 +158,22 @@ public class Board : MonoBehaviour
         // }
         // return cleared;
         return false;
+    }
+
+    private void OnDrawGizmos()
+    {
+        Gizmos.color = Color.red;
+        for (int i = 0; i < boardRows; i++)
+        {
+            for (int j = 0; j < boardCols; j++)
+            {
+                if (board != null && IsFilled(i, j))
+                {
+                    Vector2 position = GetPositionFromIndex(i, j);
+                    Gizmos.DrawWireCube(new Vector3(position.x + tileSize / 2, position.y + tileSize / 2, 0), new Vector3(tileSize, tileSize, 0));
+                }
+            }
+        }
     }
 
     void FillDownwards()
