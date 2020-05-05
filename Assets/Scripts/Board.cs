@@ -10,7 +10,6 @@ public class Board : MonoBehaviour
     public int boardRows = 30;
     public float tickSpeed = 1; //Every one second our shape shapes to go down.
     public float repeatPercentage = .1f;
-    float downDelay;
     float timeUntilDown;
     public GameObject tilePrefab;
     float timeUntilTick;
@@ -27,8 +26,6 @@ public class Board : MonoBehaviour
     {
         bottomLeft = new Vector2(transform.position.x - boardCols * tileSize / 2,
                                                       transform.position.y - boardRows * tileSize / 2);
-        downDelay = tickSpeed * repeatPercentage;
-        timeUntilTick = tickSpeed;
 
         InitializeBoard();
         PlaceShape(shapeSpawner.GetNextShape()); //initial shape
@@ -36,89 +33,96 @@ public class Board : MonoBehaviour
 
     void Update()
     {
-        // timeUntilTick -= Time.deltaTime;
-        // if (timeUntilTick <= 0)
-        // {
-        //     //This is a tick
-        //     Vector2Int oldPosition = boardPosition;
-        //     isSet = HandleGravity();
 
-        //     timeUntilTick = tickSpeed;
-        // }
-        // if (Input.GetKeyDown(KeyCode.D))
-        // {
-        //     HandleCollision(new Vector2Int(1, 0));
-        // }
-        // else if (Input.GetKeyDown(KeyCode.A))
-        // {
-        //     HandleCollision(new Vector2Int(-1, 0));
-        // }
-        // if (Input.GetKeyDown(KeyCode.S))
-        // {
-        //     isSet = HandleGravity();
-        // }
-        // if (Input.GetKey(KeyCode.S))
-        // {
-        //     if (timeUntilDown <= 0)
-        //     {
-        //         isSet = HandleGravity();
-        //         timeUntilDown = downDelay;
-        //     }
-        //     else
-        //     {
-        //         timeUntilDown -= Time.deltaTime;
-        //     }
-        // }
-        // else
-        // {
-        //     timeUntilDown = downDelay;
-        // }
-        // if (Input.GetKeyDown(KeyCode.W))
-        // {
-        //     RotateRight();
-        // }
-        // if (isSet)
-        // {
-        //     isSet = true;
-        //     bool cleared = ClearCompletedRows();
-        //     if (cleared)
-        //     {
-        //         FillDownwards();
-        //     }
-        //     PlaceShape(shapeSpawner.GetNextShape());
-        // }
+        if (currentShape.isSet)
+        {
+            // bool cleared = ClearCompletedRows();
+            // if (cleared)
+            // {
+            //     FillDownwards();
+            // }
+            PlaceShape(shapeSpawner.GetNextShape());
+        }
     }
 
     public void PlaceShape(Shape shape)
     {
-        shape.board = this;
-        Vector2Int maxDimensions = shape.GetMaxDimensions();
+        currentShape = shape;
+        currentShape.board = this;
+        Vector2Int maxDimensions = currentShape.GetMaxDimensions();
         if (maxDimensions.x >= 0 && maxDimensions.x < boardCols && maxDimensions.y >= 0 && maxDimensions.y < boardRows)
         {
-            shape.currentBoardIndex = new Vector2Int(maxDimensions.x, boardRows - maxDimensions.y);
+            currentShape.currentBoardIndex = new Vector2Int(maxDimensions.x, boardRows - maxDimensions.y);
         }
-        currentShape = shape;
 
-        shape.isSet = false;
+        currentShape.isSet = false;
     }
 
     void InitializeBoard()
     {
         board = new bool[boardRows][];
-
         for (int i = 0; i < boardRows; i++)
         {
-            board[i] = new bool[boardCols];
-            for (int j = 0; j < boardCols; j++)
-            {
-                Vector2 position = GetPositionFromIndex(i, j);
-                board[i][j] = false; // to be created
-                // board[i][j] = (Tile)Instantiate(tilePrefab, position, Quaternion.identity).GetComponent<Tile>();
-                // board[i][j].SetSize(tileSize);
-                // board[i][j].SetBoardIndex(i, j);
-                // board[i][j].Render();
-            }
+            board[i] = new bool[boardCols]; // bool defaults to false
         }
+        RenderBoard();
+    }
+
+    void RenderBoard()
+    {
+        Debug.Log("rendering board with bottomLeft: " + bottomLeft + " and size: " + tileSize);
+        MeshRenderer meshRenderer = gameObject.AddComponent<MeshRenderer>();
+        MeshFilter meshFilter = gameObject.AddComponent<MeshFilter>();
+
+        meshRenderer.sharedMaterial = new Material(Shader.Find("Standard"));
+        Mesh mesh = new Mesh();
+
+
+        Vector3[] vertices = new Vector3[4]
+        {
+            new Vector3(bottomLeft.x, bottomLeft.y, 0), //bottom left
+            new Vector3(bottomLeft.x + boardCols * tileSize, bottomLeft.y, 0), //bottom right
+            new Vector3(bottomLeft.x, bottomLeft.y + boardRows * tileSize, 0), //top left
+            new Vector3(bottomLeft.x + boardCols * tileSize, bottomLeft.y + boardRows * tileSize, 0) //top right
+        };
+
+        //Remove this adjustment when we are actually rendering with quads instead of gizmos
+        Vector3 adjustmentVector = new Vector3(-tileSize / 2, -tileSize / 2);
+        for (int i = 0; i < vertices.Length; i++)
+        {
+            vertices[i] += adjustmentVector;
+        }
+
+        mesh.vertices = vertices;
+
+        int[] tris = new int[6]
+        {
+                // lower left triangle
+                0, 2, 1,
+                // upper right triangle
+                2, 3, 1
+        };
+        mesh.triangles = tris;
+
+        Vector3[] normals = new Vector3[4]
+        {
+                -Vector3.forward,
+                -Vector3.forward,
+                -Vector3.forward,
+                -Vector3.forward
+        };
+        mesh.normals = normals;
+
+        Vector2[] uv = new Vector2[4]
+        {
+                new Vector2(0, 0),
+                new Vector2(1, 0),
+                new Vector2(0, 1),
+                new Vector2(1, 1)
+        };
+        mesh.uv = uv;
+
+        meshFilter.mesh = mesh;
     }
 
     bool ClearCompletedRows()
@@ -176,55 +180,11 @@ public class Board : MonoBehaviour
         // }
     }
 
-    private void OnDrawGizmos()
-    {
-        // for (int row = 0; row < boardRows; row++)
-        // {
-        //     for (int col = 0; col < boardCols; col++)
-        //     {
-        //         Gizmos.DrawCube(GetPositionFromIndex(row, col), new Vector3(1, 1, -10));
-        //     }
-        // }
-    }
-
     public Vector2 GetPositionFromIndex(int row, int col)
     {
         return new Vector2(bottomLeft.x + tileSize * col, bottomLeft.y + tileSize * row);
     }
 
-
-    void RotateRight()
-    {
-        // if (isSet)
-        // {
-        //     return; //Do nothing if the current shape is already set
-        // }
-        // for (int i = 0; i < currentShape.blocks.Length; i++)
-        // {
-        //     ClearTile(boardPosition + currentShape.blocks[i]);
-        // }
-
-        // // _DebugPositions("old positions: ");
-        // bool collisions = false;
-        // Vector2Int[] rotated_blocks = currentShape.RotateRight();
-        // for (int i = 0; i < rotated_blocks.Length; i++)
-        // {
-        //     if (TileFilled(boardPosition + rotated_blocks[i]))
-        //     {
-        //         collisions = true;
-        //         break;
-        //     }
-        // }
-        // if (!collisions)
-        // {
-        //     currentShape.blocks = rotated_blocks;
-        // }
-        // for (int i = 0; i < currentShape.blocks.Length; i++)
-        // {
-        //     FillTile(boardPosition + currentShape.blocks[i]);
-        // }
-        // // _DebugPositions("new positions: ");
-    }
 
     void _DebugPositions(string header)
     {

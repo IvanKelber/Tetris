@@ -14,6 +14,13 @@ public class Shape : MonoBehaviour
     public Vector2Int currentBoardIndex;
     public float blockSize = 1;
     float timeUntilTick;
+    float timeUntilDown;
+    float downDelay;
+
+    private void Start()
+    {
+        downDelay = board.tickSpeed * board.repeatPercentage;
+    }
 
     private void Update()
     {
@@ -38,26 +45,26 @@ public class Shape : MonoBehaviour
         {
             HandleGravity();
         }
-        // if (Input.GetKey(KeyCode.S))
-        // {
-        //     if (timeUntilDown <= 0)
-        //     {
-        //         isSet = HandleGravity();
-        //         timeUntilDown = downDelay;
-        //     }
-        //     else
-        //     {
-        //         timeUntilDown -= Time.deltaTime;
-        //     }
-        // }
-        // else
-        // {
-        //     timeUntilDown = downDelay;
-        // }
-        // if (Input.GetKeyDown(KeyCode.W))
-        // {
-        //     RotateRight();
-        // }
+        if (Input.GetKey(KeyCode.S))
+        {
+            if (timeUntilDown <= 0)
+            {
+                HandleGravity();
+                timeUntilDown = downDelay;
+            }
+            else
+            {
+                timeUntilDown -= Time.deltaTime;
+            }
+        }
+        else
+        {
+            timeUntilDown = downDelay;
+        }
+        if (Input.GetKeyDown(KeyCode.W))
+        {
+            RotateRight();
+        }
         // if (isSet)
         // {
         //     bool cleared = ClearCompletedRows();
@@ -120,54 +127,54 @@ public class Shape : MonoBehaviour
         // _DebugPositions("new positions: ");
     }
 
-    // public void Render()
-    // {
-    //     //render based on size
-    //     MeshRenderer meshRenderer = gameObject.AddComponent<MeshRenderer>();
-    //     MeshFilter meshFilter = gameObject.AddComponent<MeshFilter>();
+    public void Render()
+    {
+        //render based on size
+        MeshRenderer meshRenderer = gameObject.AddComponent<MeshRenderer>();
+        MeshFilter meshFilter = gameObject.AddComponent<MeshFilter>();
 
-    //     meshRenderer.sharedMaterial = new Material(Shader.Find("Standard"));
-    //     meshRenderer.material.SetColor("_Color", defaultColor);
-    //     Mesh mesh = new Mesh();
+        meshRenderer.sharedMaterial = new Material(Shader.Find("Standard"));
+        meshRenderer.material.SetColor("_Color", defaultColor);
+        Mesh mesh = new Mesh();
 
-    //     Vector3[] vertices = new Vector3[4]
-    //     {
-    //         new Vector3(0, 0, 0),
-    //         new Vector3(size, 0, 0),
-    //         new Vector3(0, size, 0),
-    //         new Vector3(size, size, 0)
-    //     };
-    //     mesh.vertices = vertices;
+        Vector3[] vertices = new Vector3[4]
+        {
+            new Vector3(0, 0, 0),
+            new Vector3(size, 0, 0),
+            new Vector3(0, size, 0),
+            new Vector3(size, size, 0)
+        };
+        mesh.vertices = vertices;
 
-    //     int[] tris = new int[6]
-    //     {
-    //         // lower left triangle
-    //         0, 2, 1,
-    //         // upper right triangle
-    //         2, 3, 1
-    //     };
-    //     mesh.triangles = tris;
+        int[] tris = new int[6]
+        {
+            // lower left triangle
+            0, 2, 1,
+            // upper right triangle
+            2, 3, 1
+        };
+        mesh.triangles = tris;
 
-    //     Vector3[] normals = new Vector3[4]
-    //     {
-    //         -Vector3.forward,
-    //         -Vector3.forward,
-    //         -Vector3.forward,
-    //         -Vector3.forward
-    //     };
-    //     mesh.normals = normals;
+        Vector3[] normals = new Vector3[4]
+        {
+            -Vector3.forward,
+            -Vector3.forward,
+            -Vector3.forward,
+            -Vector3.forward
+        };
+        mesh.normals = normals;
 
-    //     Vector2[] uv = new Vector2[4]
-    //     {
-    //         new Vector2(0, 0),
-    //         new Vector2(1, 0),
-    //         new Vector2(0, 1),
-    //         new Vector2(1, 1)
-    //     };
-    //     mesh.uv = uv;
+        Vector2[] uv = new Vector2[4]
+        {
+            new Vector2(0, 0),
+            new Vector2(1, 0),
+            new Vector2(0, 1),
+            new Vector2(1, 1)
+        };
+        mesh.uv = uv;
 
-    //     meshFilter.mesh = mesh;
-    // }
+        meshFilter.mesh = mesh;
+    }
 
     public Vector2Int GetMaxDimensions()
     {
@@ -186,15 +193,37 @@ public class Shape : MonoBehaviour
     }
 
 
-    // public Vector2Int[] RotateRight()
-    // {
-    //     Vector2Int[] rotated_blocks = new Vector2Int[blocks.Length];
-    //     for (int i = 0; i < blocks.Length; i++)
-    //     {
-    //         rotated_blocks[i] = new Vector2Int(blocks[i].y, -blocks[i].x);
-    //     }
-    //     return rotated_blocks;
-    // }
+    public void RotateRight()
+    {
+        if (isSet)
+        {
+            return; //Do nothing if the current shape is already set
+        }
+
+
+        // // _DebugPositions("old positions: ");
+        bool collisions = false;
+        List<Vector2Int> rotated_blocks = new List<Vector2Int>(); ;
+        for (int i = 0; i < blocks.Count; i++)
+        {
+            Vector2Int rotated_block = new Vector2Int(blocks[i].y, -blocks[i].x);
+            if (board.IsFilled(currentBoardIndex + rotated_block))
+            {
+                collisions = true;
+                break;
+            }
+            else
+            {
+                rotated_blocks.Add(rotated_block);
+            }
+        }
+        if (!collisions)
+        {
+            blocks = rotated_blocks;
+        }
+        // // _DebugPositions("new positions: ");
+
+    }
 
     private void OnDrawGizmos()
     {
@@ -202,13 +231,18 @@ public class Shape : MonoBehaviour
         // Debug.Log(color);
         // Debug.Log(transform.position);
 
-        for (int row = 0; row < board.boardRows; row++)
-        {
-            for (int col = 0; col < board.boardCols; col++)
-            {
-                Gizmos.DrawCube(board.GetPositionFromIndex(row, col), new Vector3(1, 1, -10));
-            }
-        }
+        // for (int row = 0; row < board.boardRows; row++)
+        // {
+        //     for (int col = 0; col < board.boardCols; col++)
+        //     {
+        //         Vector2 pos = board.GetPositionFromIndex(row, col);
+        //         if (row + col == 0)
+        //         {
+        //             Debug.Log("bottomLeft position from gizmos" + pos);
+        //         }
+        //         Gizmos.DrawCube(pos, new Vector3(blockSize, blockSize, -10));
+        //     }
+        // }
         Gizmos.color = color;
         for (int i = 0; i < blocks.Count; i++)
         {
