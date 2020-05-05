@@ -10,22 +10,22 @@ public class Board : MonoBehaviour
     public int boardRows = 30;
     public float tickSpeed = 1; //Every one second our shape shapes to go down.
     public float repeatPercentage = .1f;
-    float downDelay;
     float timeUntilDown;
     public GameObject tilePrefab;
     float timeUntilTick;
-    private Tile[][] board;
+    private bool[][] board;
 
     Shape currentShape;
     Vector2Int boardPosition;
 
     public ShapeSpawner shapeSpawner;
+    private Vector2 bottomLeft;
 
     bool isSet = false;
     void Start()
     {
-        downDelay = tickSpeed * repeatPercentage;
-        timeUntilTick = tickSpeed;
+        bottomLeft = new Vector2(transform.position.x - boardCols * tileSize / 2,
+                                                      transform.position.y - boardRows * tileSize / 2);
 
         InitializeBoard();
         PlaceShape(shapeSpawner.GetNextShape()); //initial shape
@@ -33,234 +33,175 @@ public class Board : MonoBehaviour
 
     void Update()
     {
-        timeUntilTick -= Time.deltaTime;
-        if (timeUntilTick <= 0)
-        {
-            //This is a tick
-            Vector2Int oldPosition = boardPosition;
-            isSet = HandleGravity();
 
-            timeUntilTick = tickSpeed;
-        }
-        if (Input.GetKeyDown(KeyCode.D))
+        if (currentShape.isSet)
         {
-            HandleCollision(new Vector2Int(1, 0));
-        }
-        else if (Input.GetKeyDown(KeyCode.A))
-        {
-            HandleCollision(new Vector2Int(-1, 0));
-        }
-        if (Input.GetKeyDown(KeyCode.S))
-        {
-            isSet = HandleGravity();
-        }
-        if (Input.GetKey(KeyCode.S))
-        {
-            if (timeUntilDown <= 0)
-            {
-                isSet = HandleGravity();
-                timeUntilDown = downDelay;
-            }
-            else
-            {
-                timeUntilDown -= Time.deltaTime;
-            }
-        }
-        else
-        {
-            timeUntilDown = downDelay;
-        }
-        if (Input.GetKeyDown(KeyCode.W))
-        {
-            RotateRight();
-        }
-        if (isSet)
-        {
-            isSet = true;
-            bool cleared = ClearCompletedRows();
-            if (cleared)
-            {
-                FillDownwards();
-            }
+            // bool cleared = ClearCompletedRows();
+            // if (cleared)
+            // {
+            //     FillDownwards();
+            // }
             PlaceShape(shapeSpawner.GetNextShape());
         }
     }
 
     public void PlaceShape(Shape shape)
     {
-        Vector2Int maxDimensions = shape.GetMaxDimensions();
+        currentShape = shape;
+        currentShape.board = this;
+        Vector2Int maxDimensions = currentShape.GetMaxDimensions();
         if (maxDimensions.x >= 0 && maxDimensions.x < boardCols && maxDimensions.y >= 0 && maxDimensions.y < boardRows)
         {
-            boardPosition = new Vector2Int(maxDimensions.x, boardRows - maxDimensions.y);
+            currentShape.currentBoardIndex = new Vector2Int(maxDimensions.x, boardRows - maxDimensions.y);
         }
-        currentShape = shape;
 
-        isSet = false;
+        currentShape.isSet = false;
     }
 
     void InitializeBoard()
     {
-        Vector2 startingPosition = new Vector2(transform.position.x - boardCols * tileSize / 2,
-                                               transform.position.y - boardRows * tileSize / 2);
-        board = new Tile[boardRows][];
-
+        board = new bool[boardRows][];
         for (int i = 0; i < boardRows; i++)
         {
-            board[i] = new Tile[boardCols];
-            for (int j = 0; j < boardCols; j++)
-            {
-                Vector2 position = new Vector2(startingPosition.x + tileSize * j, startingPosition.y + tileSize * i);
-                board[i][j] = (Tile)Instantiate(tilePrefab, position, Quaternion.identity).GetComponent<Tile>();
-                board[i][j].SetSize(tileSize);
-                board[i][j].SetBoardIndex(i, j);
-                board[i][j].Render();
-            }
+            board[i] = new bool[boardCols]; // bool defaults to false
         }
+        RenderBoard();
+    }
+
+    void RenderBoard()
+    {
+        Debug.Log("rendering board with bottomLeft: " + bottomLeft + " and size: " + tileSize);
+        MeshRenderer meshRenderer = gameObject.AddComponent<MeshRenderer>();
+        MeshFilter meshFilter = gameObject.AddComponent<MeshFilter>();
+        meshRenderer.sortingOrder = 5;
+
+        meshRenderer.sharedMaterial = new Material(Shader.Find("Standard"));
+        Mesh mesh = new Mesh();
+
+
+        Vector3[] vertices = new Vector3[4]
+        {
+            new Vector3(bottomLeft.x, bottomLeft.y, 0), //bottom left
+            new Vector3(bottomLeft.x + boardCols * tileSize, bottomLeft.y, 0), //bottom right
+            new Vector3(bottomLeft.x, bottomLeft.y + boardRows * tileSize, 0), //top left
+            new Vector3(bottomLeft.x + boardCols * tileSize, bottomLeft.y + boardRows * tileSize, 0) //top right
+        };
+
+        // //Remove this adjustment when we are actually rendering with quads instead of gizmos
+        // Vector3 adjustmentVector = new Vector3(-tileSize / 2, -tileSize / 2);
+        // for (int i = 0; i < vertices.Length; i++)
+        // {
+        //     vertices[i] += adjustmentVector;
+        // }
+
+        mesh.vertices = vertices;
+
+        int[] tris = new int[6]
+        {
+                // lower left triangle
+                0, 2, 1,
+                // upper right triangle
+                2, 3, 1
+        };
+        mesh.triangles = tris;
+
+        Vector3[] normals = new Vector3[4]
+        {
+                -Vector3.forward,
+                -Vector3.forward,
+                -Vector3.forward,
+                -Vector3.forward
+        };
+        mesh.normals = normals;
+
+        Vector2[] uv = new Vector2[4]
+        {
+                new Vector2(0, 0),
+                new Vector2(1, 0),
+                new Vector2(0, 1),
+                new Vector2(1, 1)
+        };
+        mesh.uv = uv;
+
+        meshFilter.mesh = mesh;
     }
 
     bool ClearCompletedRows()
     {
-        HashSet<int> rowsToCheck = new HashSet<int>();
+        // HashSet<int> rowsToCheck = new HashSet<int>();
 
-        bool cleared = false;
-        foreach (Vector2Int block in currentShape.blocks)
-        {
-            rowsToCheck.Add((boardPosition + block).y);
-        }
-        foreach (int row in rowsToCheck)
-        {
-            Debug.Log("checking row : " + row);
-            bool complete = true;
-            for (int col = 0; col < boardCols; col++)
-            {
-                if (!TileFilled(row, col))
-                {
-                    Debug.Log("Row " + row + ", col " + col + " is unfilled");
-                    complete = false;
-                    break;
-                }
-            }
-            if (complete)
-            {
-                cleared = true;
-                for (int col = 0; col < boardCols; col++)
-                {
-                    ClearTile(row, col);
-                }
-            }
-        }
-        return cleared;
-    }
-
-    void FillDownwards()
-    {
-        for (int row = 0; row < boardRows; row++)
-        {
-            for (int col = 0; col < boardCols; col++)
-            {
-                if (TileFilled(row, col))
-                {
-                    Color fillColor = board[row][col].GetColor();
-                    ClearTile(row, col);
-                    int endRow = row;
-                    while (endRow > 0 && !TileFilled(--endRow, col)) ;
-                    Debug.Log("(" + row + ", " + col + ") is falling to (" + endRow + ", " + col + ")");
-                    FillTile(endRow, col, fillColor);
-
-                }
-            }
-        }
+        // bool cleared = false;
+        // foreach (Vector2Int block in currentShape.blocks)
+        // {
+        //     rowsToCheck.Add((boardPosition + block).y);
+        // }
+        // foreach (int row in rowsToCheck)
+        // {
+        //     Debug.Log("checking row : " + row);
+        //     bool complete = true;
+        //     for (int col = 0; col < boardCols; col++)
+        //     {
+        //         if (!TileFilled(row, col))
+        //         {
+        //             Debug.Log("Row " + row + ", col " + col + " is unfilled");
+        //             complete = false;
+        //             break;
+        //         }
+        //     }
+        //     if (complete)
+        //     {
+        //         cleared = true;
+        //         for (int col = 0; col < boardCols; col++)
+        //         {
+        //             ClearTile(row, col);
+        //         }
+        //     }
+        // }
+        // return cleared;
+        return false;
     }
 
     private void OnDrawGizmos()
     {
-        if (board != null)
+        Gizmos.color = Color.red;
+        for (int i = 0; i < boardRows; i++)
         {
-            foreach (Tile[] tiles in board)
+            for (int j = 0; j < boardCols; j++)
             {
-                foreach (Tile tile in tiles)
+                if (board != null && IsFilled(i, j))
                 {
-                    Gizmos.color = tile.GetColor();
-                    Gizmos.DrawCube(tile.GetCenter(), new Vector2(tileSize, tileSize));
-                    Gizmos.color = Color.red;
-                    Gizmos.DrawWireCube(tile.GetCenter(), new Vector2(tileSize, tileSize));
+                    Vector2 position = GetPositionFromIndex(i, j);
+                    Gizmos.DrawWireCube(new Vector3(position.x + tileSize / 2, position.y + tileSize / 2, 0), new Vector3(tileSize, tileSize, 0));
                 }
             }
         }
     }
 
-    public bool HandleGravity()
+    void FillDownwards()
     {
-        Vector2Int oldPosition = boardPosition;
-        HandleCollision(new Vector2Int(0, -1));
-        return oldPosition == boardPosition;
+        // for (int row = 0; row < boardRows; row++)
+        // {
+        //     for (int col = 0; col < boardCols; col++)
+        //     {
+        //         if (TileFilled(row, col))
+        //         {
+        //             Color fillColor = board[row][col].GetColor();
+        //             ClearTile(row, col);
+        //             int endRow = row;
+        //             while (endRow > 0 && !TileFilled(--endRow, col)) ;
+        //             Debug.Log("(" + row + ", " + col + ") is falling to (" + endRow + ", " + col + ")");
+        //             FillTile(endRow, col, fillColor);
+
+        //         }
+        //     }
+        // }
     }
 
-    public void HandleCollision(Vector2Int directionVector)
+    public Vector2 GetPositionFromIndex(int row, int col)
     {
-        if (isSet)
-        {
-            return; //Do nothing if the current shape is already set
-        }
-        Vector2Int newBoardPosition = boardPosition + directionVector;
-        for (int i = 0; i < currentShape.blocks.Length; i++)
-        {
-            ClearTile(boardPosition + currentShape.blocks[i]);
-        }
-
-        // _DebugPositions("old positions: ");
-        bool collisions = false;
-        for (int i = 0; i < currentShape.blocks.Length; i++)
-        {
-            if (TileFilled(newBoardPosition + currentShape.blocks[i]))
-            {
-                collisions = true;
-                break;
-            }
-        }
-        if (!collisions)
-        {
-            boardPosition = newBoardPosition;
-        }
-        for (int i = 0; i < currentShape.blocks.Length; i++)
-        {
-            FillTile(boardPosition + currentShape.blocks[i]);
-        }
-        // _DebugPositions("new positions: ");
+        return new Vector2(bottomLeft.x + tileSize * col, bottomLeft.y + tileSize * row);
     }
 
-    void RotateRight()
-    {
-        if (isSet)
-        {
-            return; //Do nothing if the current shape is already set
-        }
-        for (int i = 0; i < currentShape.blocks.Length; i++)
-        {
-            ClearTile(boardPosition + currentShape.blocks[i]);
-        }
-
-        // _DebugPositions("old positions: ");
-        bool collisions = false;
-        Vector2Int[] rotated_blocks = currentShape.RotateRight();
-        for (int i = 0; i < rotated_blocks.Length; i++)
-        {
-            if (TileFilled(boardPosition + rotated_blocks[i]))
-            {
-                collisions = true;
-                break;
-            }
-        }
-        if (!collisions)
-        {
-            currentShape.blocks = rotated_blocks;
-        }
-        for (int i = 0; i < currentShape.blocks.Length; i++)
-        {
-            FillTile(boardPosition + currentShape.blocks[i]);
-        }
-        // _DebugPositions("new positions: ");
-    }
 
     void _DebugPositions(string header)
     {
@@ -268,38 +209,38 @@ public class Board : MonoBehaviour
     }
 
     //Tile Filling/Clearing Methods
-    public bool TileFilled(Vector2Int boardPosition)
+    public bool IsFilled(Vector2Int boardPosition)
     {
-        return TileFilled(boardPosition.y, boardPosition.x);
+        return IsFilled(boardPosition.y, boardPosition.x);
     }
-    public bool TileFilled(int row, int col)
+    public bool IsFilled(int row, int col)
     {
         if (col >= 0 && col < boardCols && row >= 0 && row < boardRows)
         {
-            return board[row][col].IsFilled();
+            return board[row][col];
         }
         return true;
     }
-    public void FillTile(Vector2Int boardPosition)
+    public void Fill(Vector2Int boardPosition)
     {
-        FillTile(boardPosition.y, boardPosition.x, currentShape.color);
+        Fill(boardPosition.y, boardPosition.x, currentShape.color);
     }
-    public void FillTile(int row, int col, Color color)
+    public void Fill(int row, int col, Color color)
     {
         if (col >= 0 && col < boardCols && row >= 0 && row < boardRows)
         {
-            board[row][col].Fill(color);
+            board[row][col] = true;
         }
     }
-    public void ClearTile(Vector2Int boardPosition)
+    public void Clear(Vector2Int boardPosition)
     {
-        ClearTile(boardPosition.y, boardPosition.x);
+        Clear(boardPosition.y, boardPosition.x);
     }
-    public void ClearTile(int row, int col)
+    public void Clear(int row, int col)
     {
         if (col >= 0 && col < boardCols && row >= 0 && row < boardRows)
         {
-            board[row][col].Clear();
+            board[row][col] = false;
         }
     }
 }
