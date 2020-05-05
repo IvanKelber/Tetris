@@ -23,6 +23,7 @@ public class Shape : MonoBehaviour
     {
         meshRenderer = gameObject.AddComponent<MeshRenderer>();
         meshFilter = gameObject.AddComponent<MeshFilter>();
+        meshRenderer.sortingOrder = 10;
 
         meshRenderer.sharedMaterial = new Material(Shader.Find("Standard"));
         meshRenderer.material.SetColor("_Color", color);
@@ -162,10 +163,10 @@ public class Shape : MonoBehaviour
         Vector2 block = new Vector2(blockIndex.x * blockSize, blockIndex.y * blockSize);
         Vector3[] vertices = new Vector3[4]
         {
-                new Vector3(block.x, block.y, 10),
-                new Vector3(block.x + blockSize, block.y, 10),
-                new Vector3(block.x, block.y + blockSize, 10),
-                new Vector3(block.x + blockSize, block.y + blockSize, 10)
+                new Vector3(block.x, block.y, -5),
+                new Vector3(block.x + blockSize, block.y, -5),
+                new Vector3(block.x, block.y + blockSize, -5),
+                new Vector3(block.x + blockSize, block.y + blockSize, -5)
         };
         string s = "";
         foreach (Vector3 v in vertices)

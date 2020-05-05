@@ -73,6 +73,7 @@ public class Board : MonoBehaviour
         Debug.Log("rendering board with bottomLeft: " + bottomLeft + " and size: " + tileSize);
         MeshRenderer meshRenderer = gameObject.AddComponent<MeshRenderer>();
         MeshFilter meshFilter = gameObject.AddComponent<MeshFilter>();
+        meshRenderer.sortingOrder = 5;
 
         meshRenderer.sharedMaterial = new Material(Shader.Find("Standard"));
         Mesh mesh = new Mesh();
