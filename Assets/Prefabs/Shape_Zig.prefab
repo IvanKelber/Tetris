@@ -48,8 +48,8 @@ MonoBehaviour:
   - {x: 1, y: 0}
   - {x: 1, y: 1}
   - {x: 2, y: 1}
-  color: {r: 0.9150943, g: 0.082013145, b: 0.082013145, a: 1}
+  blockMeshes: []
+  color: {r: 0.9137255, g: 0.08235291, b: 0.77891374, a: 1}
   board: {fileID: 0}
   isSet: 0
   currentBoardIndex: {x: 0, y: 0}
-  blockSize: 0.2

@@ -36,12 +36,9 @@
     <ImplicitlyExpandDesignTimeFacades>false</ImplicitlyExpandDesignTimeFacades>
   </PropertyGroup>
   <ItemGroup>
-     <Compile Include="Assets\Scripts\Block.cs" />
      <Compile Include="Assets\Scripts\Board.cs" />
      <Compile Include="Assets\Scripts\Shape.cs" />
-     <Compile Include="Assets\Scripts\ShapeEditor.cs" />
      <Compile Include="Assets\Scripts\ShapeSpawner.cs" />
-     <Compile Include="Assets\Scripts\Tile.cs" />
     <Reference Include="UnityEngine">
         <HintPath>/Users/ikelber/Unity/2020.1.0b6/Unity.app/Contents/Managed/UnityEngine/UnityEngine.dll</HintPath>
     </Reference>
