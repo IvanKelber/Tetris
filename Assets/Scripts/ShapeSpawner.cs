@@ -5,45 +5,26 @@ using UnityEngine;
 public class ShapeSpawner : MonoBehaviour
 {
 
-    public Vector2Int[][] shapeVectors;
-    public Color[] colorOptions;
-    Shape[] shapeManifest;
-    Shape loadedShape;
+
+    public GameObject[] shapePrefabs;
+    GameObject loadedShapePrefab;
 
     public void Awake()
     {
-        shapeVectors = new Vector2Int[][] {
-            new Vector2Int[] {new Vector2Int(-1,0), new Vector2Int(0,0), new Vector2Int(0,1), new Vector2Int(1,1)}, // zig
-            new Vector2Int[] {new Vector2Int(0,0), new Vector2Int(1,0), new Vector2Int(1,1), new Vector2Int(0,1)}, // square
-            new Vector2Int[] {new Vector2Int(-1,-1), new Vector2Int(-1,0), new Vector2Int(0,0), new Vector2Int(1,0)}, // L
-            new Vector2Int[] {new Vector2Int(-2,0), new Vector2Int(-1,0), new Vector2Int(0,0), new Vector2Int(1,0)}, //line
-            new Vector2Int[] {new Vector2Int(-1,0), new Vector2Int(0,0), new Vector2Int(1,0), new Vector2Int(1,-1)}, // reverse L
-            new Vector2Int[] {new Vector2Int(-1,1), new Vector2Int(0,1), new Vector2Int(0,0), new Vector2Int(1,0)}, // zag
-            new Vector2Int[] {new Vector2Int(-1,0), new Vector2Int(0,0), new Vector2Int(0,-1), new Vector2Int(1,0)}, //steps
-
-        };
-
-        shapeManifest = new Shape[shapeVectors.Length];
-
-        for (int i = 0; i < shapeVectors.Length; i++)
-        {
-            shapeManifest[i] = new Shape(shapeVectors[i], colorOptions[i]);
-        }
+        loadedShapePrefab = GetRandomShapePrefab();
     }
 
     public Shape GetNextShape()
     {
         Shape currentShape;
-        currentShape = (loadedShape == null) ? GetRandomShape() : loadedShape;
-        loadedShape = GetRandomShape();
+        currentShape = (Shape)Instantiate(loadedShapePrefab, Vector3.zero, Quaternion.identity).GetComponent<Shape>();
+        loadedShapePrefab = GetRandomShapePrefab();
         return currentShape;
     }
 
-    private Shape GetRandomShape()
+    private GameObject GetRandomShapePrefab()
     {
-        Shape shape = shapeManifest[Random.Range(0, shapeManifest.Length)];
-        shape.Reset();
-        return shape;
+        return shapePrefabs[Random.Range(0, shapePrefabs.Length)];
     }
 
 

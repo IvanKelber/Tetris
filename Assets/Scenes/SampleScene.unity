@@ -140,7 +140,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!81 &519420029
 AudioListener:
   m_ObjectHideFlags: 0
@@ -222,7 +222,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &696675376
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -272,7 +272,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!108 &1310675405
 Light:
   m_ObjectHideFlags: 0
@@ -348,6 +348,59 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 50, y: -30, z: 0}
+--- !u!1 &1741533895
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1741533897}
+  - component: {fileID: 1741533896}
+  m_Layer: 0
+  m_Name: Shape
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1741533896
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1741533895}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3d15b47f14f6440a18e470ccda1e749d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  blocks:
+  - {x: 0, y: 0}
+  - {x: 1, y: 0}
+  - {x: 1, y: 1}
+  - {x: 2, y: 1}
+  color: {r: 0.9150943, g: 0.082013145, b: 0.082013145, a: 1}
+  board: {fileID: 696675376}
+  isSet: 0
+  currentBoardIndex: {x: 0, y: 0}
+  blockSize: 0.2
+--- !u!4 &1741533897
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1741533895}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.06, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 4
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1788318224
 GameObject:
   m_ObjectHideFlags: 0
@@ -364,7 +417,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1788318225
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -377,15 +430,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b4ca5f1287b2b4683a61201599f1e0ea, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  colorOptions:
-  - {r: 1, g: 0, b: 0.021857738, a: 0}
-  - {r: 0.8865501, g: 0.09825563, b: 0.9056604, a: 0}
-  - {r: 0.031149892, g: 0.14150152, b: 0.9433962, a: 0}
-  - {r: 0.1374337, g: 0.9056604, b: 0.11534355, a: 0}
-  - {r: 0.06474723, g: 0.9150943, b: 0.88848084, a: 0}
-  - {r: 1, g: 0.6443301, b: 0, a: 0}
-  - {r: 0.786418, g: 0.9339623, b: 0.074893214, a: 0}
-  - {r: 0.59964377, g: 0.040850822, b: 0.9622642, a: 0}
+  shapePrefabs:
+  - {fileID: 1741533895}
 --- !u!4 &1788318226
 Transform:
   m_ObjectHideFlags: 0
