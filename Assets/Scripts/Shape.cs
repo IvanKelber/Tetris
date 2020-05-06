@@ -7,12 +7,13 @@ public class Shape : MonoBehaviour
 {
 
     public List<Vector2Int> blocks; //this is a list because the blocks can be removed by lines.
-    public List<Mesh> blockMeshes;
     public Color color;
-    public Board board; // The board that the piece is on.
+    [HideInInspector]
     public bool isSet;
 
+    [HideInInspector]
     public Vector2Int currentBoardIndex;
+    Board board; // The board that the piece is on.
     float blockSize;
     float timeUntilTick;
     float timeUntilDown;
@@ -20,6 +21,7 @@ public class Shape : MonoBehaviour
     const float edgeWidth = .005f;
     MeshRenderer meshRenderer;
     MeshFilter meshFilter;
+
     private void Start()
     {
         meshRenderer = gameObject.AddComponent<MeshRenderer>();
@@ -30,8 +32,6 @@ public class Shape : MonoBehaviour
         meshRenderer.material.SetColor("_Color", color);
 
         meshFilter.mesh = new Mesh();
-
-
         downDelay = board.tickSpeed * board.repeatPercentage;
     }
 
@@ -80,15 +80,6 @@ public class Shape : MonoBehaviour
         {
             RotateRight();
         }
-        // if (isSet)
-        // {
-        //     bool cleared = ClearCompletedRows();
-        //     if (cleared)
-        //     {
-        //         FillDownwards();
-        //     }
-        //     PlaceShape(shapeSpawner.GetNextShape());
-        // }
     }
 
     public void SetBoard(Board board)
@@ -97,9 +88,12 @@ public class Shape : MonoBehaviour
         blockSize = board.tileSize;
     }
 
-    public void HandleGravity()
+    private void HandleGravity()
     {
-        // Vector2Int oldPosition = boardPosition;
+        if (isSet)
+        {
+            return;
+        }
         bool collisions = DetectCollision(new Vector2Int(0, -1));
         MoveShape(collisions, true);
     }
@@ -107,13 +101,21 @@ public class Shape : MonoBehaviour
     public void MoveShape(bool collisions, bool downwards)
     {
         // if we have collided with something while moving down then we are "set" and we should fill the tilemap
+        // and check for completed rows
         if (collisions && downwards)
         {
+            List<int> completedRows = new List<int>();
             isSet = true;
             for (int i = 0; i < blocks.Count; i++)
             {
-                board.Fill(currentBoardIndex + blocks[i]);
+                board.Fill(currentBoardIndex + blocks[i], this, blocks[i]);
+                if (++board.fillCounts[currentBoardIndex.y + blocks[i].y] == board.boardCols)
+                {
+                    completedRows.Add(currentBoardIndex.y + blocks[i].y);
+                };
             }
+            completedRows.Sort();
+            board.HandleCompletedRows(completedRows);
         }
         else if (!collisions)
         {
@@ -121,6 +123,24 @@ public class Shape : MonoBehaviour
             transform.position = board.GetPositionFromIndex(currentBoardIndex.y, currentBoardIndex.x);
         }
     }
+
+    public Vector2Int MoveBlock(Vector2Int block, int shift)
+    {
+        int blockIndex = blocks.IndexOf(block);
+        if (blockIndex >= 0)
+        {
+            blocks[blockIndex] = new Vector2Int(block.x, block.y - shift);
+            return blocks[blockIndex];
+        }
+        Debug.LogError("Block does not exist in this shape");
+        return new Vector2Int(-1, -1);
+    }
+
+    public void MoveToBoardIndex(int row, int col)
+    {
+        transform.position = board.GetPositionFromIndex(row, col);
+    }
+
 
     public bool DetectCollision(Vector2Int directionVector)
     {
@@ -148,7 +168,7 @@ public class Shape : MonoBehaviour
         // _DebugPositions("new positions: ");
     }
 
-    public void Render()
+    private void Render()
     {
         Mesh mesh = GetComponent<MeshFilter>().mesh;
         mesh.Clear();
@@ -165,7 +185,7 @@ public class Shape : MonoBehaviour
         mesh.RecalculateNormals();
     }
 
-    public Vector3[] GetVertices(Vector2Int blockIndex)
+    private Vector3[] GetVertices(Vector2Int blockIndex)
     {
         Vector2 block = new Vector2(blockIndex.x * blockSize, blockIndex.y * blockSize);
         Vector3[] vertices = new Vector3[4]
@@ -178,7 +198,7 @@ public class Shape : MonoBehaviour
         return vertices;
     }
 
-    public int[] GetTriangles(int block)
+    private int[] GetTriangles(int block)
     {
         int start = 4 * block;
         int[] tris = new int[6]
@@ -189,6 +209,18 @@ public class Shape : MonoBehaviour
             start + 2, start + 3, start + 1
        };
         return tris;
+    }
+
+    public void Remove(int row, int col)
+    {
+        //row, col are the board index of a block that this shape needs to remove
+        Vector2Int boardIndex = new Vector2Int(col, row);
+        boardIndex -= currentBoardIndex;
+        blocks.Remove(boardIndex);
+        if (blocks.Count == 0)
+        {
+            Destroy(gameObject);
+        }
     }
 
     public Vector2Int GetMaxDimensions()

@@ -5,45 +5,38 @@ using UnityEditor;
 
 public class Board : MonoBehaviour
 {
-    public float tileSize = 1; //Tiles are squares
+    public float tileSize = 0.2f; //Tiles are squares
     public int boardCols = 10;
-    public int boardRows = 30;
-    public float tickSpeed = 1; //Every one second our shape shapes to go down.
+    public int boardRows = 20;
+    public float tickSpeed = 1; //Every one second our shapes go down.
     public float repeatPercentage = .1f;
-    float timeUntilDown;
-    public GameObject tilePrefab;
-    float timeUntilTick;
-    private bool[][] board;
+    private BlockInfo[][] board; //2d array referencing the shapes/blocks that occupy the tile
 
+    [HideInInspector]
+    public int[] fillCounts;
     Shape currentShape;
-    Vector2Int boardPosition;
 
     public ShapeSpawner shapeSpawner;
     private Vector2 bottomLeft;
 
-    bool isSet = false;
     void Start()
     {
         bottomLeft = new Vector2(transform.position.x - boardCols * tileSize / 2,
                                                       transform.position.y - boardRows * tileSize / 2);
-
+        fillCounts = new int[boardRows];
         InitializeBoard();
         PlaceShape(shapeSpawner.GetNextShape()); //initial shape
     }
 
     void Update()
     {
-
         if (currentShape.isSet)
         {
-            // bool cleared = ClearCompletedRows();
-            // if (cleared)
-            // {
-            //     FillDownwards();
-            // }
             PlaceShape(shapeSpawner.GetNextShape());
         }
     }
+
+
 
     public void PlaceShape(Shape shape)
     {
@@ -59,10 +52,14 @@ public class Board : MonoBehaviour
 
     void InitializeBoard()
     {
-        board = new bool[boardRows][];
+        board = new BlockInfo[boardRows][];
         for (int i = 0; i < boardRows; i++)
         {
-            board[i] = new bool[boardCols]; // bool defaults to false
+            board[i] = new BlockInfo[boardCols];
+            for (int j = 0; j < boardCols; j++)
+            {
+                board[i][j] = new BlockInfo(null, new Vector2Int(-1, -1));
+            }
         }
         RenderBoard();
     }
@@ -125,40 +122,47 @@ public class Board : MonoBehaviour
         meshFilter.mesh = mesh;
     }
 
-    bool ClearCompletedRows()
+    public void HandleCompletedRows(List<int> completedRows)
     {
-        // HashSet<int> rowsToCheck = new HashSet<int>();
+        if (completedRows.Count > 0)
+        {
+            foreach (int row in completedRows)
+            {
+                fillCounts[row] = 0;
+                for (int col = 0; col < boardCols; col++)
+                {
+                    board[row][col].shape.Remove(row, col);
+                    board[row][col].Clear();
+                }
+            }
+            int shift = 1;
+            foreach (int row in completedRows)
+            {
+                int nextRow = row + 1;
 
-        // bool cleared = false;
-        // foreach (Vector2Int block in currentShape.blocks)
-        // {
-        //     rowsToCheck.Add((boardPosition + block).y);
-        // }
-        // foreach (int row in rowsToCheck)
-        // {
-        //     Debug.Log("checking row : " + row);
-        //     bool complete = true;
-        //     for (int col = 0; col < boardCols; col++)
-        //     {
-        //         if (!TileFilled(row, col))
-        //         {
-        //             Debug.Log("Row " + row + ", col " + col + " is unfilled");
-        //             complete = false;
-        //             break;
-        //         }
-        //     }
-        //     if (complete)
-        //     {
-        //         cleared = true;
-        //         for (int col = 0; col < boardCols; col++)
-        //         {
-        //             ClearTile(row, col);
-        //         }
-        //     }
-        // }
-        // return cleared;
-        return false;
+                while (nextRow < boardRows && fillCounts[nextRow] > 0)
+                {
+                    fillCounts[nextRow - shift] = fillCounts[nextRow];
+                    for (int col = 0; col < boardCols; col++)
+                    {
+                        board[nextRow - shift][col].Clear();
+                        BlockInfo blockInfo = board[nextRow][col];
+                        if (!blockInfo.IsNull())
+                        {
+                            fillCounts[nextRow]--;
+                            BlockInfo newBlockInfo = new BlockInfo(blockInfo.shape,
+                                                    blockInfo.shape.MoveBlock(blockInfo.block, shift));
+                            board[nextRow - shift][col] = newBlockInfo;
+                        }
+                        board[nextRow][col].Clear();
+                    }
+                    nextRow++;
+                }
+                shift++;
+            }
+        }
     }
+
 
     private void OnDrawGizmos()
     {
@@ -173,38 +177,38 @@ public class Board : MonoBehaviour
                     Gizmos.DrawWireCube(new Vector3(position.x + tileSize / 2, position.y + tileSize / 2, 0), new Vector3(tileSize, tileSize, 0));
                 }
             }
+            Vector2 rowPosition = GetPositionFromIndex(i, 0);
+            Handles.Label(new Vector2(rowPosition.x - .5f, rowPosition.y + tileSize / 2), "" + fillCounts[i]);
         }
     }
 
-    void FillDownwards()
+    public struct BlockInfo
     {
-        // for (int row = 0; row < boardRows; row++)
-        // {
-        //     for (int col = 0; col < boardCols; col++)
-        //     {
-        //         if (TileFilled(row, col))
-        //         {
-        //             Color fillColor = board[row][col].GetColor();
-        //             ClearTile(row, col);
-        //             int endRow = row;
-        //             while (endRow > 0 && !TileFilled(--endRow, col)) ;
-        //             Debug.Log("(" + row + ", " + col + ") is falling to (" + endRow + ", " + col + ")");
-        //             FillTile(endRow, col, fillColor);
+        public Shape shape;
+        public Vector2Int block;
 
-        //         }
-        //     }
-        // }
+        public BlockInfo(Shape shape, Vector2Int block)
+        {
+            this.shape = shape;
+            this.block = block;
+        }
+
+        public bool IsNull()
+        {
+            return shape == null && block.x == -1;
+        }
+
+        public void Clear()
+        {
+            shape = null;
+            block = new Vector2Int(-1, -1);
+        }
     }
+
 
     public Vector2 GetPositionFromIndex(int row, int col)
     {
         return new Vector2(bottomLeft.x + tileSize * col, bottomLeft.y + tileSize * row);
-    }
-
-
-    void _DebugPositions(string header)
-    {
-        Debug.Log(header + boardPosition);
     }
 
     //Tile Filling/Clearing Methods
@@ -216,19 +220,19 @@ public class Board : MonoBehaviour
     {
         if (col >= 0 && col < boardCols && row >= 0 && row < boardRows)
         {
-            return board[row][col];
+            return !board[row][col].IsNull();
         }
         return true;
     }
-    public void Fill(Vector2Int boardPosition)
+    public void Fill(Vector2Int boardPosition, Shape shape, Vector2Int block)
     {
-        Fill(boardPosition.y, boardPosition.x, currentShape.color);
+        Fill(boardPosition.y, boardPosition.x, new BlockInfo(shape, block));
     }
-    public void Fill(int row, int col, Color color)
+    public void Fill(int row, int col, BlockInfo blockInfo)
     {
         if (col >= 0 && col < boardCols && row >= 0 && row < boardRows)
         {
-            board[row][col] = true;
+            board[row][col] = blockInfo;
         }
     }
     public void Clear(Vector2Int boardPosition)
@@ -239,7 +243,7 @@ public class Board : MonoBehaviour
     {
         if (col >= 0 && col < boardCols && row >= 0 && row < boardRows)
         {
-            board[row][col] = false;
+            board[row][col].Clear();
         }
     }
 }
