@@ -13,6 +13,8 @@ public class Shape : MonoBehaviour
 
     [HideInInspector]
     public Vector2Int currentBoardIndex;
+    [HideInInspector]
+    public bool onStandby = true;
     Board board; // The board that the piece is on.
     float blockSize;
     float timeUntilTick;
@@ -32,12 +34,17 @@ public class Shape : MonoBehaviour
         meshRenderer.material.SetColor("_Color", color);
 
         meshFilter.mesh = new Mesh();
-        downDelay = board.tickSpeed * board.repeatPercentage;
     }
 
     private void Update()
     {
         Render();
+
+        if (onStandby)
+        {
+            return;
+        }
+        downDelay = board.tickSpeed * board.repeatPercentage;
 
         timeUntilTick -= Time.deltaTime;
         if (timeUntilTick <= 0)

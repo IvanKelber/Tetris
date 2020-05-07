@@ -48,6 +48,7 @@ public class Board : MonoBehaviour
             currentShape.currentBoardIndex = new Vector2Int(maxDimensions.x, boardRows - maxDimensions.y);
         }
         currentShape.isSet = false;
+        currentShape.onStandby = false;
     }
 
     void InitializeBoard()
@@ -177,8 +178,11 @@ public class Board : MonoBehaviour
                     Gizmos.DrawWireCube(new Vector3(position.x + tileSize / 2, position.y + tileSize / 2, 0), new Vector3(tileSize, tileSize, 0));
                 }
             }
-            Vector2 rowPosition = GetPositionFromIndex(i, 0);
-            Handles.Label(new Vector2(rowPosition.x - .5f, rowPosition.y + tileSize / 2), "" + fillCounts[i]);
+            if (fillCounts.Length > 0)
+            {
+                Vector2 rowPosition = GetPositionFromIndex(i, 0);
+                Handles.Label(new Vector2(rowPosition.x - .5f, rowPosition.y + tileSize / 2), "" + fillCounts[i]);
+            }
         }
     }
 
