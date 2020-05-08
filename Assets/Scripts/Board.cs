@@ -25,6 +25,7 @@ public class Board : MonoBehaviour
                                                       transform.position.y - boardRows * tileSize / 2);
         fillCounts = new int[boardRows];
         InitializeBoard();
+        shapeSpawner.SetBoard(this);
         PlaceShape(shapeSpawner.GetNextShape()); //initial shape
     }
 

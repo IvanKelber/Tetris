@@ -8,14 +8,25 @@ public class ShapeSpawner : MonoBehaviour
 
     public GameObject[] shapePrefabs;
     Shape loadedShape;
+    Board board;
 
     public void Awake()
     {
         loadedShape = (Shape)Instantiate(GetRandomShapePrefab(), transform.position, Quaternion.identity).GetComponent<Shape>();
     }
 
-    public void Update()
+    public void SetBoard(Board board)
     {
+        this.board = board;
+        loadedShape.SetBoard(board);
+    }
+
+    private void Update()
+    {
+        if (board != null && loadedShape != null)
+        {
+            SetBoard(board);
+        }
     }
 
     public Shape GetNextShape()

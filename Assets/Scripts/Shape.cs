@@ -179,15 +179,20 @@ public class Shape : MonoBehaviour
     {
         Mesh mesh = GetComponent<MeshFilter>().mesh;
         mesh.Clear();
-        List<Vector3> verticesList = new List<Vector3>();
+        List<Vector3> vertices = new List<Vector3>();
         List<int> triangles = new List<int>();
         for (int i = 0; i < blocks.Count; i++)
         {
-            verticesList.AddRange(GetVertices(blocks[i]));
+            vertices.AddRange(GetVertices(blocks[i]));
             triangles.AddRange(GetTriangles(i));
         }
-        Vector3[] vertices = verticesList.ToArray();
-        mesh.vertices = vertices;
+        string s = "";
+        for (int i = 0; i < vertices.Count; i++)
+        {
+            s += "" + vertices[i];
+        }
+        Debug.Log("vertices: " + s);
+        mesh.vertices = vertices.ToArray();
         mesh.triangles = triangles.ToArray();
         mesh.RecalculateNormals();
     }
