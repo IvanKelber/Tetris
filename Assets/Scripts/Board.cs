@@ -10,6 +10,11 @@ public class Board : MonoBehaviour
     public int boardRows = 20;
     public float tickSpeed = 1; //Every one second our shapes go down.
     public float repeatPercentage = .1f;
+    public int basePointsPerRow = 100;
+    public int nextBenchmarkLineCount = 5;
+    int pointTotal = 0;
+    int lineCount = 0;
+
     private BlockInfo[][] board; //2d array referencing the shapes/blocks that occupy the tile
 
     [HideInInspector]
@@ -18,7 +23,6 @@ public class Board : MonoBehaviour
 
     public ShapeSpawner shapeSpawner;
     private Vector2 bottomLeft;
-
     void Start()
     {
         bottomLeft = new Vector2(transform.position.x - boardCols * tileSize / 2,
@@ -35,9 +39,23 @@ public class Board : MonoBehaviour
         {
             PlaceShape(shapeSpawner.GetNextShape());
         }
+        Debug.Log("Points: " + pointTotal);
     }
 
 
+    public int CalculateScore(int rowsCompleted)
+    {
+        return (int)(Mathf.Pow(2, rowsCompleted - 1) * basePointsPerRow / tickSpeed);
+    }
+
+    public void IncreaseTickSpeed()
+    {
+        if (lineCount > nextBenchmarkLineCount)
+        {
+            tickSpeed -= 0.1f;
+            nextBenchmarkLineCount *= 2;
+        }
+    }
 
     public void PlaceShape(Shape shape)
     {
@@ -46,10 +64,15 @@ public class Board : MonoBehaviour
         Vector2Int maxDimensions = currentShape.GetMaxDimensions();
         if (maxDimensions.x >= 0 && maxDimensions.x < boardCols && maxDimensions.y >= 0 && maxDimensions.y < boardRows)
         {
-            currentShape.currentBoardIndex = new Vector2Int(maxDimensions.x, boardRows - maxDimensions.y);
+            currentShape.currentBoardIndex = new Vector2Int(maxDimensions.x, boardRows - maxDimensions.y - 1);
         }
         currentShape.isSet = false;
         currentShape.onStandby = false;
+        if (currentShape.DetectCollision(new Vector2Int(0, 0)))
+        {
+            Debug.LogError("Final Score: " + pointTotal);
+            GameStateManager.Menu();
+        }
     }
 
     void InitializeBoard()
@@ -84,13 +107,6 @@ public class Board : MonoBehaviour
             new Vector3(bottomLeft.x, bottomLeft.y + boardRows * tileSize, 0), //top left
             new Vector3(bottomLeft.x + boardCols * tileSize, bottomLeft.y + boardRows * tileSize, 0) //top right
         };
-
-        // //Remove this adjustment when we are actually rendering with quads instead of gizmos
-        // Vector3 adjustmentVector = new Vector3(-tileSize / 2, -tileSize / 2);
-        // for (int i = 0; i < vertices.Length; i++)
-        // {
-        //     vertices[i] += adjustmentVector;
-        // }
 
         mesh.vertices = vertices;
 
@@ -128,6 +144,7 @@ public class Board : MonoBehaviour
     {
         if (completedRows.Count > 0)
         {
+            pointTotal += CalculateScore(completedRows.Count);
             foreach (int row in completedRows)
             {
                 fillCounts[row] = 0;

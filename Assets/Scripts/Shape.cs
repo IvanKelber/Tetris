@@ -162,6 +162,7 @@ public class Shape : MonoBehaviour
 
             if (board.IsFilled(newBoardIndex + blocks[i]))
             {
+                Debug.Log("position is filled: " + (newBoardIndex + blocks[i]));
                 collisions = true;
                 break;
             }
@@ -186,12 +187,6 @@ public class Shape : MonoBehaviour
             vertices.AddRange(GetVertices(blocks[i]));
             triangles.AddRange(GetTriangles(i));
         }
-        string s = "";
-        for (int i = 0; i < vertices.Count; i++)
-        {
-            s += "" + vertices[i];
-        }
-        Debug.Log("vertices: " + s);
         mesh.vertices = vertices.ToArray();
         mesh.triangles = triangles.ToArray();
         mesh.RecalculateNormals();
@@ -286,31 +281,6 @@ public class Shape : MonoBehaviour
 
     private void OnDrawGizmos()
     {
-
-        // Debug.Log(color);
-        // Debug.Log(transform.position);
-
-        // for (int row = 0; row < board.boardRows; row++)
-        // {
-        //     for (int col = 0; col < board.boardCols; col++)
-        //     {
-        //         Vector2 pos = board.GetPositionFromIndex(row, col);
-        //         if (row + col == 0)
-        //         {
-        //             Debug.Log("bottomLeft position from gizmos" + pos);
-        //         }
-        //         Gizmos.DrawCube(pos, new Vector3(blockSize, blockSize, -10));
-        //     }
-        // }
-        // Gizmos.color = color;
-        // for (int i = 0; i < blocks.Count; i++)
-        // {
-        //     Vector2 position = board.GetPositionFromIndex(currentBoardIndex.y + blocks[i].y, currentBoardIndex.x + blocks[i].x);
-        //     Gizmos.DrawCube(new Vector3(position.x + blockSize / 2, position.y + blockSize / 2), new Vector3(blockSize, blockSize, 10));
-        // }
-        // Handles.Label(transform.position, "HERE");
-        // Gizmos.color = Color.red;
-        // Gizmos.DrawWireCube(tile.GetCenter(), new Vector2(tileSize, tileSize));
 
     }
 
