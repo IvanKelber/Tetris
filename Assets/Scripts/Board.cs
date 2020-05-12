@@ -31,6 +31,8 @@ public class Board : MonoBehaviour
         InitializeBoard();
         shapeSpawner.SetBoard(this);
         PlaceShape(shapeSpawner.GetNextShape()); //initial shape
+        Messenger<float>.Broadcast(GameEvent.SPEED_UPDATED, tickSpeed);
+
     }
 
     void Update()
@@ -39,7 +41,6 @@ public class Board : MonoBehaviour
         {
             PlaceShape(shapeSpawner.GetNextShape());
         }
-        Debug.Log("Points: " + pointTotal);
     }
 
 
@@ -54,6 +55,7 @@ public class Board : MonoBehaviour
         {
             tickSpeed -= 0.1f;
             nextBenchmarkLineCount *= 2;
+            Messenger<float>.Broadcast(GameEvent.SPEED_UPDATED, tickSpeed);
         }
     }
 
@@ -179,6 +181,10 @@ public class Board : MonoBehaviour
                 }
                 shift++;
             }
+            lineCount += completedRows.Count;
+            Messenger<int>.Broadcast(GameEvent.ROW_COMPLETED, lineCount);
+            Messenger<int>.Broadcast(GameEvent.SCORE_UPDATED, pointTotal);
+            IncreaseTickSpeed();
         }
     }
 
