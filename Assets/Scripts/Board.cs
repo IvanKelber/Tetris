@@ -71,7 +71,9 @@ public class Board : MonoBehaviour
         if (currentShape.DetectCollision(new Vector2Int(0, 0)))
         {
             Debug.LogError("Final Score: " + pointTotal);
-            GameStateManager.Menu();
+            GameStateManager.final_score = pointTotal;
+            GameStateManager.lines = lineCount;
+            GameStateManager.Lose();
         }
     }
 

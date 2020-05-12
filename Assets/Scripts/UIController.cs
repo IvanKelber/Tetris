@@ -10,8 +10,6 @@ public class UIController : MonoBehaviour
     [SerializeField]
     private TMP_Text scoreText;
     [SerializeField]
-    private TMP_Text speedText;
-    [SerializeField]
     private TMP_Text linesText;
 
     int lines = 0;
