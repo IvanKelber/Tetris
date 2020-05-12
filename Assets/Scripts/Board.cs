@@ -31,7 +31,6 @@ public class Board : MonoBehaviour
         InitializeBoard();
         shapeSpawner.SetBoard(this);
         PlaceShape(shapeSpawner.GetNextShape()); //initial shape
-        Messenger<float>.Broadcast(GameEvent.SPEED_UPDATED, tickSpeed);
 
     }
 
@@ -55,7 +54,6 @@ public class Board : MonoBehaviour
         {
             tickSpeed -= 0.1f;
             nextBenchmarkLineCount *= 2;
-            Messenger<float>.Broadcast(GameEvent.SPEED_UPDATED, tickSpeed);
         }
     }
 

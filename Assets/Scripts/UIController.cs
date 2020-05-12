@@ -16,12 +16,10 @@ public class UIController : MonoBehaviour
 
     int lines = 0;
     int score = 0;
-    // float speed = 0.0f;
     void Awake()
     {
         Messenger<int>.AddListener(GameEvent.ROW_COMPLETED, OnRowCompleted);
         Messenger<int>.AddListener(GameEvent.SCORE_UPDATED, OnScoreUpdated);
-        // Messenger<float>.AddListener(GameEvent.SPEED_UPDATED, OnSpeedUpdated);
     }
 
     void Destroy()
@@ -33,7 +31,6 @@ public class UIController : MonoBehaviour
     void Start()
     {
         scoreText.text = "Score: " + score;
-        // speedText.text = "Speed: " + speed;
         linesText.text = "Lines: " + lines;
     }
 
@@ -49,11 +46,6 @@ public class UIController : MonoBehaviour
         scoreText.text = "Score: " + score;
     }
 
-    void OnSpeedUpdated(float speed)
-    {
-        this.speed = speed;
-        speedText.text = "Speed: " + speed;
-    }
 
 
 }
